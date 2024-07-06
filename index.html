@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çankaya Benzin İstasyonları ve Fiyatları</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        #map { height: 100vh; width: 100%; }
+        .custom-icon {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 5px;
+            padding: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .station-info {
+            font-size: 10px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .station-name {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+        .price-info {
+            font-size: 9px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script>
+        // Harita oluşturma
+        var map = L.map('map').setView([39.9208, 32.8541], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Genişletilmiş benzin istasyonu verileri
+        const stationData = [
+            {name: "Shell Çankaya 1", lat: 39.9208, lon: 32.8541, benzin: 33.71, dizel: 35.55, lpg: 16.23},
+            {name: "Opet Çankaya 1", lat: 39.9150, lon: 32.8620, benzin: 33.69, dizel: 35.53, lpg: 16.21},
+            {name: "BP Çankaya 1", lat: 39.9250, lon: 32.8480, benzin: 33.72, dizel: 35.56, lpg: 16.24},
+            {name: "Total Çankaya 1", lat: 39.9180, lon: 32.8600, benzin: 33.70, dizel: 35.54, lpg: 16.22},
+            {name: "Petrol Ofisi Çankaya 1", lat: 39.9220, lon: 32.8520, benzin: 33.73, dizel: 35.57, lpg: 16.25},
+            {name: "Aytemiz Çankaya 1", lat: 39.9170, lon: 32.8580, benzin: 33.68, dizel: 35.52, lpg: 16.20},
+            {name: "Alpet Çankaya 1", lat: 39.9240, lon: 32.8500, benzin: 33.67, dizel: 35.51, lpg: 16.19},
+            {name: "Lukoil Çankaya 1", lat: 39.9190, lon: 32.8560, benzin: 33.66, dizel: 35.50, lpg: 16.18},
+            {name: "GO Çankaya 1", lat: 39.9230, lon: 32.8540, benzin: 33.65, dizel: 35.49, lpg: 16.17},
+            {name: "TP Çankaya 1", lat: 39.9160, lon: 32.8610, benzin: 33.64, dizel: 35.48, lpg: 16.16},
+            {name: "Shell Çankaya 2", lat: 39.9130, lon: 32.8650, benzin: 33.72, dizel: 35.56, lpg: 16.24},
+            {name: "Opet Çankaya 2", lat: 39.9270, lon: 32.8460, benzin: 33.70, dizel: 35.54, lpg: 16.22},
+            {name: "BP Çankaya 2", lat: 39.9140, lon: 32.8630, benzin: 33.73, dizel: 35.57, lpg: 16.25},
+            {name: "Total Çankaya 2", lat: 39.9260, lon: 32.8470, benzin: 33.71, dizel: 35.55, lpg: 16.23},
+            {name: "Petrol Ofisi Çankaya 2", lat: 39.9200, lon: 32.8550, benzin: 33.69, dizel: 35.53, lpg: 16.21},
+            {name: "Aytemiz Çankaya 2", lat: 39.9280, lon: 32.8440, benzin: 33.68, dizel: 35.52, lpg: 16.20},
+            {name: "Alpet Çankaya 2", lat: 39.9120, lon: 32.8660, benzin: 33.67, dizel: 35.51, lpg: 16.19},
+            {name: "Lukoil Çankaya 2", lat: 39.9290, lon: 32.8430, benzin: 33.66, dizel: 35.50, lpg: 16.18},
+            {name: "GO Çankaya 2", lat: 39.9110, lon: 32.8670, benzin: 33.65, dizel: 35.49, lpg: 16.17},
+            {name: "TP Çankaya 2", lat: 39.9300, lon: 32.8420, benzin: 33.64, dizel: 35.48, lpg: 16.16},
+            {name: "Shell Çankaya 3", lat: 39.9100, lon: 32.8680, benzin: 33.71, dizel: 35.55, lpg: 16.23},
+            {name: "Opet Çankaya 3", lat: 39.9310, lon: 32.8410, benzin: 33.69, dizel: 35.53, lpg: 16.21},
+            {name: "BP Çankaya 3", lat: 39.9090, lon: 32.8690, benzin: 33.72, dizel: 35.56, lpg: 16.24},
+            {name: "Total Çankaya 3", lat: 39.9320, lon: 32.8400, benzin: 33.70, dizel: 35.54, lpg: 16.22},
+            {name: "Petrol Ofisi Çankaya 3", lat: 39.9080, lon: 32.8700, benzin: 33.73, dizel: 35.57, lpg: 16.25},
+        ];
+
+        // Özel ikon oluşturma fonksiyonu
+        function createCustomIcon(station) {
+            return L.divIcon({
+                className: 'custom-icon',
+                html: `<div class="station-info">
+                         <div class="station-name">${station.name}</div>
+                         <div class="price-info">
+                           B:${station.benzin.toFixed(2)}<br>
+                           D:${station.dizel.toFixed(2)}<br>
+                           L:${station.lpg.toFixed(2)}
+                         </div>
+                       </div>`,
+                iconSize: [80, 50],
+                iconAnchor: [40, 25]
+            });
+        }
+
+        // İstasyonları haritaya ekleme
+        stationData.forEach(station => {
+            L.marker([station.lat, station.lon], {
+                icon: createCustomIcon(station)
+            }).addTo(map);
+        });
+    </script>
+</body>
+</html>
